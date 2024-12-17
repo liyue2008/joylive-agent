@@ -1,0 +1,54 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: joylive-demo-kubernetes-provider-gateway
+  namespace: envoy-managed
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 10081
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: joylive-demo-kubernetes-provider
+  namespace: envoy-managed
+spec:
+  hosts:
+  - joylive-demo-kubernetes-provider
+  gateways:
+  - joylive-demo-kubernetes-provider-gateway
+  http:
+  - match:
+    - headers:
+        user:
+          exact: unit2
+    route:
+    - destination:
+        host: joylive-demo-kubernetes-provider
+        subset: unit2
+  - route:
+    - destination:
+        host: joylive-demo-kubernetes-provider
+        subset: unit1
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: joylive-demo-kubernetes-provider
+  namespace: envoy-managed
+spec:
+  host: joylive-demo-kubernetes-provider
+  subsets:
+  - name: unit1
+    labels:
+      x-live-unit: unit1
+  - name: unit2
+    labels:
+      x-live-unit: unit2

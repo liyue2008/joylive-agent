@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.function.Function;
 
 @Getter
 @Setter
@@ -54,6 +55,17 @@ public class LiveLocation implements Serializable {
                 System.getProperty(LiveTransmission.X_LIVE_RULE_ID),
                 System.getProperty(LiveTransmission.X_LANE_SPACE_ID),
                 System.getProperty(LiveTransmission.X_LANE_CODE)
+        );
+    }
+
+    public static LiveLocation build(Function<String, String> tagFunc) {
+        return new LiveLocation(
+                tagFunc.apply(LiveTransmission.X_LIVE_SPACE_ID),
+                tagFunc.apply(LiveTransmission.X_LIVE_UNIT),
+                tagFunc.apply(LiveTransmission.X_LIVE_CELL),
+                tagFunc.apply(LiveTransmission.X_LIVE_RULE_ID),
+                tagFunc.apply(LiveTransmission.X_LANE_SPACE_ID),
+                tagFunc.apply(LiveTransmission.X_LANE_CODE)
         );
     }
 
