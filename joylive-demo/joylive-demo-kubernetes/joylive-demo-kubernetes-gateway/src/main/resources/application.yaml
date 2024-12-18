@@ -19,36 +19,8 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: rocketmq
-          uri: lb://service-rocketmq
-          predicates:
-            - Path=/service-rocketmq/**
-            - Method=GET
-          filters:
-            - StripPrefix=1
-        - id: order
-          uri: lb://service-order
-          predicates:
-            - Path=/service-order/**
-          filters:
-            - StripPrefix=1
-        - id: consumer
-          uri: lb://service-consumer
-          predicates:
-            - Path=/service-consumer/**
-            - Method=GET
-          filters:
-            - StripPrefix=1
-        - id: provider-reactive
-          uri: lb://service-provider-reactive
-          predicates:
-            - Path=/service-provider-reactive/**
-            - Method=GET
-          filters:
-            - StripPrefix=1
-            - Retry=5
         - id: provider
-          uri: lb://service-provider
+          uri: http://joylive-demo-kubernetes-provider.envoy-managed.svc.cluster.local:80
           predicates:
             - Path=/service-provider/**
             - Method=GET
@@ -64,22 +36,6 @@ spring:
                   - POST
                 exceptions:
                   - java.io.IOException
-        - id: http
-          uri: http://demo.live.local:11374/
-          predicates:
-            - Path=/http/**
-            - Method=GET
-          filters:
-            - StripPrefix=1
-      discovery:
-        locator:
-          enabled: true
-    nacos:
-      discovery:
-        server-addr: ${NACOS_ADDR:${AP_SD_INTERNAL_ADDRESS}:${AP_SD_INTERNAL_HTTP_PORT}}
-        username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:nacos}
-        namespace: ${NACOS_NAMESPACE:public}
 
 logging:
   level:

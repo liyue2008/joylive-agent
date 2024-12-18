@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jd.live.agent.demo.springcloud.v2021.gateway;
+package com.jd.live.agent.demo.kubernetes.gateway;
 
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+
 @SpringBootApplication
-public class SpringCloud2021Gateway {
+public class KubernetesGateway {
 
     public static void main(String[] args) {
 
-        SpringApplication.run(SpringCloud2021Gateway.class, args);
+        SpringApplication.run(KubernetesGateway.class, args);
     }
 }

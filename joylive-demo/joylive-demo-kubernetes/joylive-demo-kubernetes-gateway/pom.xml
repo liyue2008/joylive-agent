@@ -120,10 +120,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-loadbalancer</artifactId>
         </dependency>
@@ -153,7 +149,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.jd.live.agent.demo.springcloud.v2021.gateway.SpringCloud2021Gateway</mainClass>
+                    <mainClass>com.jd.live.agent.demo.kubernetes.gateway.KubernetesGateway</mainClass>
                 </configuration>
             </plugin>
         </plugins>

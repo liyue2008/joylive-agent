@@ -17,22 +17,24 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: joylive-demo-springcloud2021-gateway
+    app: joylive-demo-kubernetes-gateway
     x-live-enabled: "true"
-  name: joylive-demo-springcloud2021-gateway
+  name: joylive-demo-kubernetes-gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: joylive-demo-springcloud2021-gateway
+      app: joylive-demo-kubernetes-gateway
   template:
     metadata:
       labels:
-        app: joylive-demo-springcloud2021-gateway
+        app: joylive-demo-kubernetes-gateway
         x-live-enabled: "true"
     spec:
       containers:
         - env:
+            - name: SERVER_PORT
+              value: "80"
             - name: CONFIG_LIVE_SPACE_API_TYPE
               value: multilive
             - name: CONFIG_LIVE_SPACE_API_URL
@@ -47,14 +49,8 @@ spec:
               value: info
             - name: CONFIG_LANE_ENABLED
               value: "false"
-            - name: NACOS_ADDR
-              value: nacos-server.nacos.svc:8848
-            - name: NACOS_USERNAME
-              value: nacos
-            - name: NACOS_PASSWORD
-              value: nacos
             - name: APPLICATION_NAME
-              value: springcloud2021-gateway
+              value: kubernetes-gateway
             - name: APPLICATION_SERVICE_NAMESPACE
               value: default
             - name: APPLICATION_LOCATION_REGION
@@ -69,20 +65,19 @@ spec:
               value: cell1
             - name: APPLICATION_SERVICE_GATEWAY
               value: FRONTEND
-          image: hub-vpc.jdcloud.com/jmsf/joylive-demo-springcloud2021-gateway:1.5.0-da16656c
-          imagePullPolicy: Always
-          name: joylive-demo-springcloud2021-gateway
+          image: joylive-demo-kubernetes-gateway:1.5.0
+          name: joylive-demo-kubernetes-gateway
           ports:
-            - containerPort: 8888
+            - containerPort: 80
               name: http
               protocol: TCP
           resources:
             requests:
               cpu: "1"
-              memory: "1Gi"
+              memory: "2Gi"
             limits:
-              cpu: "1"
-              memory: "1Gi"
+              cpu: "2"
+              memory: "4Gi"
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
@@ -95,93 +90,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: springcloud2021-gateway
+  name: joylive-demo-kubernetes-gateway
 spec:
   type: NodePort
   ports:
-    - port: 8888
+    - port: 80
       protocol: TCP
       targetPort: http
   selector:
-    app: joylive-demo-springcloud2021-gateway
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: joylive-demo-springcloud2021-gateway-gray
-    x-live-enabled: "true"
-  name: joylive-demo-springcloud2021-gateway-gray
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: joylive-demo-springcloud2021-gateway-gray
-  template:
-    metadata:
-      labels:
-        app: joylive-demo-springcloud2021-gateway-gray
-        x-live-enabled: "true"
-    spec:
-      containers:
-        - env:
-            - name: LIVE_LOG_LEVEL
-              value: info
-            - name: CONFIG_LANE_ENABLED
-              value: "false"
-            - name: NACOS_ADDR
-              value: nacos-server.nacos.svc:8848
-            - name: NACOS_USERNAME
-              value: nacos
-            - name: NACOS_PASSWORD
-              value: nacos
-            - name: APPLICATION_NAME
-              value: springcloud2021-gateway-gray
-            - name: APPLICATION_SERVICE_NAMESPACE
-              value: default
-            - name: APPLICATION_LOCATION_REGION
-              value: region2
-            - name: APPLICATION_LOCATION_LIVESPACE_ID
-              value: v4bEh4kd6Jvu5QBX09qYq-qlbcs
-            - name: APPLICATION_LOCATION_UNIT
-              value: unit2
-            - name: APPLICATION_LOCATION_CELL
-              value: cell4
-            - name: APPLICATION_SERVICE_GATEWAY
-              value: FRONTEND
-          image: hub-vpc.jdcloud.com/jmsf/joylive-demo-springcloud2021-gateway:1.5.0-da16656c
-          imagePullPolicy: Always
-          name: joylive-demo-springcloud2021-gateway-gray
-          ports:
-            - containerPort: 8888
-              name: http
-              protocol: TCP
-          resources:
-            requests:
-              cpu: "1"
-              memory: "1Gi"
-            limits:
-              cpu: "1"
-              memory: "1Gi"
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: { }
-      terminationGracePeriodSeconds: 30
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: springcloud2021-gateway-gray
-spec:
-  type: NodePort
-  ports:
-    - port: 8888
-      protocol: TCP
-      targetPort: http
-  selector:
-    app: joylive-demo-springcloud2021-gateway-gray
+    app: joylive-demo-kubernetes-gateway
