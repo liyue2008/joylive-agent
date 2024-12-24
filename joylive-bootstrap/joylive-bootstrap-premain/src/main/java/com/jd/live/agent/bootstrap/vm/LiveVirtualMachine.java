@@ -44,6 +44,7 @@ public class LiveVirtualMachine extends VirtualMachine {
 
     private Method method;
 
+    @SuppressWarnings("deprecation")
     public LiveVirtualMachine(VirtualMachine delegate) {
         super(delegate.provider(), delegate.id());
         this.delegate = delegate;

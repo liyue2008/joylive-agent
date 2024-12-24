@@ -51,8 +51,8 @@
         <mockito-core.version>4.11.0</mockito-core.version>
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
 
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <puppycrawl-tools-checkstyle.version>8.45.1</puppycrawl-tools-checkstyle.version>
         <maven-install-plugin.version>3.1.1</maven-install-plugin.version>
@@ -296,6 +296,15 @@
                             <version>${puppycrawl-tools-checkstyle.version}</version>
                         </dependency>
                     </dependencies>
+                    <executions>
+                        <execution>
+                            <id>checkstyle-validation</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>com.mycila</groupId>
@@ -383,6 +392,10 @@
                         </licenseSet>
                     </licenseSets>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

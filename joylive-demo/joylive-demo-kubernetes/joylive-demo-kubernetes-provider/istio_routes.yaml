@@ -12,7 +12,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - "*"
+    - "joylive-demo-kubernetes-provider.envoy-managed.svc.cluster.local"
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -21,8 +21,9 @@ metadata:
   namespace: envoy-managed
 spec:
   hosts:
-  - "*"
+  - "joylive-demo-kubernetes-provider"
   gateways:
+  - mesh
   - joylive-demo-kubernetes-provider-gateway
   http:
   - match:
