@@ -25,7 +25,7 @@ public class XDSConvert {
 
     private static final Logger logger = LoggerFactory.getLogger(XDSConvert.class);
     
-    public List<Service> virtualHostToServices(VirtualHost virtualHost) {
+    public static List<Service> virtualHostToServices(VirtualHost virtualHost) {
         List<Service> services = new ArrayList<>();
         virtualHost.getDomainsList().forEach(domain -> {
             if (domain.startsWith("*") || domain.endsWith("*")) {

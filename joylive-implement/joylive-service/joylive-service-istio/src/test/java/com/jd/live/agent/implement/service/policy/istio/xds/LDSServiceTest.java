@@ -97,6 +97,9 @@ public class LDSServiceTest {
     @Test
     public void testSubscribeRoutes() {
         List<RouteConfiguration> routeConfigs = rdsService.subscribeRoutes(Collections.singletonList("joylive-demo-kubernetes-provider.envoy-managed.svc.cluster.local:80"));
+        for (RouteConfiguration routeConfig : routeConfigs) {
+            System.out.println(routeConfig);
+        } 
     }
 
     @Test
