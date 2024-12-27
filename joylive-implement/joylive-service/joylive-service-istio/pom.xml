@@ -22,6 +22,11 @@
             <artifactId>joylive-governance-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.jd.live</groupId>
+            <artifactId>joylive-logger-slf4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>

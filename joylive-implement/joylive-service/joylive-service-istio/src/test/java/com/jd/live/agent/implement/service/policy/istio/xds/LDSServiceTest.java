@@ -2,6 +2,7 @@ package com.jd.live.agent.implement.service.policy.istio.xds;
 
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
+import com.jd.live.agent.implement.logger.slf4j.SLF4JBridge;
 import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
 
 import io.envoyproxy.envoy.config.endpoint.v3.ClusterLoadAssignment;
@@ -39,6 +40,8 @@ public class LDSServiceTest {
 
     @BeforeEach
     public void setUp() throws SSLException {
+        LoggerFactory.setBridge(new SLF4JBridge());
+
         istioConfig = new IstioConfig();
         istioConfig.setIstioAddress("localhost:15010");
         // istioConfig.setNamespace("envoy-managed");
@@ -82,13 +85,17 @@ public class LDSServiceTest {
     }
 
     @Test
-    public void testSubscribeEndpoints() {
+    public void testSubscribeEndpoints() throws InterruptedException {
 
-        List<String> clusterNames = Collections.singletonList("outbound|80|unit2|joylive-demo-kubernetes-provider.envoy-managed.svc.cluster.local");
-        List<ClusterLoadAssignment> endpoints = edsService.subscribeEndpoints(clusterNames);
-        for (ClusterLoadAssignment endpoint : endpoints) {
-            System.out.println(endpoint);
-        }
+        List<String> clusterNames = Collections.singletonList("outbound|80|unit1|joylive-demo-kubernetes-provider.envoy-managed.svc.cluster.local");
+        edsService.addConsumer(endpoints -> {
+            for (ClusterLoadAssignment endpoint : endpoints) {
+                logger.info("Endpoint: {}", endpoint);
+            }
+        });
+        
+        edsService.subscribeResourcesAsync(clusterNames);
+        Thread.sleep(1000000);
     }
 
     @Test

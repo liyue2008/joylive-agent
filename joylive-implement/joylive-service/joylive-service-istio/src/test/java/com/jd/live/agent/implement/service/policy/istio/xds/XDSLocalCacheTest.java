@@ -4,6 +4,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.jd.live.agent.bootstrap.logger.LoggerFactory;
+import com.jd.live.agent.implement.logger.slf4j.SLF4JBridge;
 import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
 
 public class XDSLocalCacheTest {
@@ -12,6 +14,7 @@ public class XDSLocalCacheTest {
 
     @BeforeEach
     public void setUp() {
+        LoggerFactory.setBridge(new SLF4JBridge());
         IstioConfig istioConfig = new IstioConfig();
         istioConfig.setIstioAddress("localhost:15010");
         xdsLocalCache = new XDSLocalCache(istioConfig);

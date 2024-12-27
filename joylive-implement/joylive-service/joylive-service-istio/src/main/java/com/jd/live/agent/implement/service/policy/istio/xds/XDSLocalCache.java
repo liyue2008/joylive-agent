@@ -1,6 +1,6 @@
 package com.jd.live.agent.implement.service.policy.istio.xds;
 
-import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +14,7 @@ import com.jd.live.agent.bootstrap.logger.LoggerFactory;
 import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
 
 import io.envoyproxy.envoy.config.endpoint.v3.ClusterLoadAssignment;
+import io.envoyproxy.envoy.config.endpoint.v3.LocalityLbEndpoints;
 import io.envoyproxy.envoy.config.route.v3.RouteConfiguration;
 import io.envoyproxy.envoy.config.route.v3.VirtualHost;
 
@@ -38,7 +39,7 @@ public class XDSLocalCache implements AutoCloseable {
 
     private Map<String /* domain */, VirtualHost> virtualHostCache = Collections.emptyMap();
 
-    private Map<String /* clusterName */, List<ClusterLoadAssignment>> endpointsCache = Collections.emptyMap();
+    private Map<String /* clusterName */, List<LocalityLbEndpoints>> endpointsCache = Collections.emptyMap();
     public XDSLocalCache(IstioConfig istioConfig) {
         this.istioConfig = istioConfig;
         this.channelManager = new GrpcChannelManager(istioConfig);
@@ -61,13 +62,13 @@ public class XDSLocalCache implements AutoCloseable {
 
     private void subscribeRoutes() {
         rdsService.addConsumer(this::updateVirtualHosts);
-        ldsService.addConsumer(listeners -> rdsService.subscribeRoutes(LDSService.getRdsNames(listeners)));
+        ldsService.addConsumer(listeners -> rdsService.subscribeResourcesAsync(LDSService.getRdsNames(listeners)));
         ldsService.subscribeResourcesAsync(Collections.emptyList());
     }
 
     private void subscribeEndpoints() {
         edsService.addConsumer(this::updateEndpoints);
-        cdsService.addConsumer(clusters -> edsService.subscribeEndpoints(CDSService.getClusterNames(clusters)));
+        cdsService.addConsumer(clusters -> edsService.subscribeResourcesAsync(CDSService.getClusterNames(clusters)));
         cdsService.subscribeResourcesAsync(Collections.emptyList());
     }
 
@@ -96,9 +97,11 @@ public class XDSLocalCache implements AutoCloseable {
     }
 
     private void updateEndpoints(List<ClusterLoadAssignment> endpoints) {
-        Map<String, List<ClusterLoadAssignment>> newEndpointsCache = new HashMap<>();
-        endpoints.forEach(endpoint -> {
-            newEndpointsCache.computeIfAbsent(endpoint.getClusterName(), k -> new ArrayList<>()).add(endpoint);
+        Map<String, List<LocalityLbEndpoints>> newEndpointsCache = new HashMap<>();
+        endpoints.forEach(clusterLoadAssignment -> {
+            if (clusterLoadAssignment.getEndpointsCount() > 0) {
+                newEndpointsCache.put(clusterLoadAssignment.getClusterName(), clusterLoadAssignment.getEndpointsList());
+            }
         });
         endpointsCache = newEndpointsCache;
     }
@@ -107,7 +110,7 @@ public class XDSLocalCache implements AutoCloseable {
         return virtualHostCache.get(domain);
     }
 
-    public List<ClusterLoadAssignment> getEndpoints(String clusterName) {
+    public List<LocalityLbEndpoints> getEndpoints(String clusterName) {
         return endpointsCache.get(clusterName);
     }
 }

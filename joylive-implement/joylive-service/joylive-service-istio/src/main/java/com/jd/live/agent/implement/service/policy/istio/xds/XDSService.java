@@ -97,8 +97,6 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
         @Setter
         private StreamObserver<DiscoveryRequest> requestObserver;
 
-        private String lastVersionInfo;
-
         public ResonseObserver(GrpcChannelManager channelManager, Class<T> resourceClass) {
 
             this.channelManager = channelManager;
@@ -106,13 +104,10 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
         }
         @Override
         public void onNext(DiscoveryResponse response) {
-            if (lastVersionInfo == null || !lastVersionInfo.equals(response.getVersionInfo())) {
-
-                lastVersionInfo = response.getVersionInfo();
-                List<T> resources = XDSSupoort.extractResources(response, resourceClass);
-                logger.info("Resource updated, type: {}, count: {}", resourceClass.getSimpleName(), resources.size());
-                resourceConsumers.forEach(consumer -> consumer.accept(resources));
-            }
+            logger.info("{} updated, count: {}", resourceClass.getSimpleName(), response.getResourcesCount());
+            List<T> resources = XDSSupoort.extractResources(response, resourceClass);
+            resourceConsumers.forEach(consumer -> consumer.accept(resources));
+            
             // ack
             DiscoveryRequest ackRequest = XDSSupoort.buildAckDiscoveryRequest(lastRequest, response);
             requestObserver.onNext(ackRequest);
