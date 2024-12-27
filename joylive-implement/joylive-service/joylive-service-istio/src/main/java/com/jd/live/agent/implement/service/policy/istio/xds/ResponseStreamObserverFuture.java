@@ -40,8 +40,9 @@ public class ResponseStreamObserverFuture<T extends com.google.protobuf.Message>
     }
 
     @Override
-    public void onNext(DiscoveryResponse value) {
-        this.resources = XDSSupoort.extractResources(value, resourceClass);
+    public void onNext(DiscoveryResponse response) {
+        
+        this.resources = XDSSupoort.extractResources(response, resourceClass);
         onComplete();
     }
 

@@ -11,21 +11,20 @@ import com.jd.live.agent.bootstrap.logger.LoggerFactory;
 import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
 
 import io.envoyproxy.envoy.config.core.v3.Node;
-import io.envoyproxy.envoy.service.discovery.v3.AggregatedDiscoveryServiceGrpc;
 import io.envoyproxy.envoy.service.discovery.v3.DiscoveryRequest;
 import io.envoyproxy.envoy.service.discovery.v3.DiscoveryResponse;
 import io.grpc.stub.StreamObserver;
+import lombok.Setter;
 
 
 
-public abstract class XDSService<T extends com.google.protobuf.Message> {
+public abstract class XDSService<T extends com.google.protobuf.Message>{
 
     private static final Logger logger = LoggerFactory.getLogger(XDSService.class);
 
     protected final IstioConfig config;
     protected final GrpcChannelManager channelManager;
     protected final Node node;
-    protected AggregatedDiscoveryServiceGrpc.AggregatedDiscoveryServiceStub stub;
     protected StreamObserver<DiscoveryRequest> requestObserver = null;
 
     private final Object lock = new Object();
@@ -40,19 +39,12 @@ public abstract class XDSService<T extends com.google.protobuf.Message> {
         this.responseObserver = new ResonseObserver<>(channelManager, getResourceClass());
     }
 
-    public void start() {
-        synchronized (lock) {
-            this.stub = XDSSupoort.createADSStub(channelManager.getChannel());
-            
-        }
-    }
-
-
     public Future<List<T>> subscribeResources(List<String> resourceNames) {
         
         DiscoveryRequest request = XDSSupoort.buildDiscoveryRequest(resourceNames, node, getResourceTypeUrl());
         ResponseStreamObserverFuture<T> responseStreamObserverFuture = new ResponseStreamObserverFuture<>(getResourceClass(), channelManager);
-        StreamObserver<DiscoveryRequest> requestObserver = stub.streamAggregatedResources(responseStreamObserverFuture);
+        StreamObserver<DiscoveryRequest> requestObserver = XDSSupoort.createADSStub(channelManager.getChannel())
+            .streamAggregatedResources(responseStreamObserverFuture);
         requestObserver.onNext(request);
         requestObserver.onCompleted();
         return responseStreamObserverFuture;
@@ -61,6 +53,7 @@ public abstract class XDSService<T extends com.google.protobuf.Message> {
     public void subscribeResourcesAsync(List<String> resourceNames) {
         DiscoveryRequest request = XDSSupoort.buildDiscoveryRequest(resourceNames, node, getResourceTypeUrl());
         maybeCreateRequestObserverSafely();
+        responseObserver.setLastRequest(request);
         requestObserver.onNext(request);
     }
 
@@ -68,8 +61,9 @@ public abstract class XDSService<T extends com.google.protobuf.Message> {
         if (requestObserver == null) {
             synchronized (lock) {
                 if (requestObserver == null) {  
-                    requestObserver =
-                        stub.streamAggregatedResources(this.responseObserver);
+                    requestObserver = XDSSupoort.createADSStub(channelManager.getChannel())
+                        .streamAggregatedResources(this.responseObserver);
+                    responseObserver.setRequestObserver(requestObserver);
                 }
             }
         }
@@ -91,8 +85,6 @@ public abstract class XDSService<T extends com.google.protobuf.Message> {
         responseObserver.addOnErrorCallback(callback);
     }
 
-
-    // TODO: 支持ACK
     private static class ResonseObserver<T extends com.google.protobuf.Message> implements StreamObserver<DiscoveryResponse> {
 
         private final List<Consumer<List<T>>> resourceConsumers = new CopyOnWriteArrayList<>();
@@ -100,16 +92,30 @@ public abstract class XDSService<T extends com.google.protobuf.Message> {
         private final Class<T> resourceClass;
         private final List<Runnable> onCompleteCallbacks = new CopyOnWriteArrayList<>();
         private final List<Consumer<Throwable>> onErrorCallbacks = new CopyOnWriteArrayList<>();
+        @Setter
+        private DiscoveryRequest lastRequest;
+        @Setter
+        private StreamObserver<DiscoveryRequest> requestObserver;
+
+        private String lastVersionInfo;
 
         public ResonseObserver(GrpcChannelManager channelManager, Class<T> resourceClass) {
 
             this.channelManager = channelManager;
             this.resourceClass = resourceClass;
-
         }
         @Override
-        public void onNext(DiscoveryResponse value) {
-            resourceConsumers.forEach(consumer -> consumer.accept(XDSSupoort.extractResources(value, resourceClass)));
+        public void onNext(DiscoveryResponse response) {
+            if (lastVersionInfo == null || !lastVersionInfo.equals(response.getVersionInfo())) {
+
+                lastVersionInfo = response.getVersionInfo();
+                List<T> resources = XDSSupoort.extractResources(response, resourceClass);
+                logger.info("Resource updated, type: {}, count: {}", resourceClass.getSimpleName(), resources.size());
+                resourceConsumers.forEach(consumer -> consumer.accept(resources));
+            }
+            // ack
+            DiscoveryRequest ackRequest = XDSSupoort.buildAckDiscoveryRequest(lastRequest, response);
+            requestObserver.onNext(ackRequest);
         }
         @Override
         public void onError(Throwable t) {

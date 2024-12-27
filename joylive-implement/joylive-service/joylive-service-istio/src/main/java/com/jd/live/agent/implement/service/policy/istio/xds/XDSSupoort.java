@@ -82,6 +82,16 @@ public class XDSSupoort {
             .build();
     }
 
+    public static DiscoveryRequest buildAckDiscoveryRequest(DiscoveryRequest request, DiscoveryResponse response) {
+        return DiscoveryRequest.newBuilder()
+            .setNode(request.getNode())
+            .addAllResourceNames(request.getResourceNamesList())
+            .setTypeUrl(request.getTypeUrl())
+            .setVersionInfo(response.getVersionInfo())
+            .setResponseNonce(response.getNonce())
+            .build();
+    }
+
     public static StreamObserver<DiscoveryResponse> buildResponseObserver(Consumer<DiscoveryResponse> responseConsumer, GrpcChannelManager channelManager, CountDownLatch latch) {
         return new StreamObserver<DiscoveryResponse>() {
 

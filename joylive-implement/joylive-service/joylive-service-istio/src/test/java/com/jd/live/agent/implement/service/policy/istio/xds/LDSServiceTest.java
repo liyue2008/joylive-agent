@@ -48,10 +48,7 @@ public class LDSServiceTest {
         rdsService = new RDSService(istioConfig, channelManager);
         edsService = new EDSService(istioConfig, channelManager);
         cdsService = new CDSService(istioConfig, channelManager);
-        ldsService.start();
-        rdsService.start();
-        edsService.start();
-        cdsService.start();
+
     }
 
     @Test

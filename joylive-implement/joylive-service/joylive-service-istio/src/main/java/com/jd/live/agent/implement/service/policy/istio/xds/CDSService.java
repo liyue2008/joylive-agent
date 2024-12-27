@@ -47,4 +47,10 @@ public class CDSService extends XDSService<Cluster> {
     protected String getResourceTypeUrl() {
         return CDS_TYPE_URL;
     }
+
+    public static List<String> getClusterNames(List<Cluster> clusters) {
+        return clusters.stream()
+            .filter(cluster -> cluster.getType() == Cluster.DiscoveryType.EDS)
+            .map(Cluster::getName).collect(Collectors.toList());
+    }
 }
