@@ -1,8 +1,8 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
-import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
+import com.jd.live.agent.xds.config.IstioConfig;
 
 import java.util.List;
 import java.util.stream.Collectors;

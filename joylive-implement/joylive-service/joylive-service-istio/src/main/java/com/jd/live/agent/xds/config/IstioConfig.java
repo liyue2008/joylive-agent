@@ -1,4 +1,4 @@
-package com.jd.live.agent.implement.service.policy.istio.config;
+package com.jd.live.agent.xds.config;
 
 
 import lombok.Getter;

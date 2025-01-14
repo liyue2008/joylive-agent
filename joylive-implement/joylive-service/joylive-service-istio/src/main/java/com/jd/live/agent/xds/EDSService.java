@@ -1,12 +1,12 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
 import java.util.List;
-import java.util.concurrent.Future; 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
-import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
+import com.jd.live.agent.xds.config.IstioConfig;
 
 import io.envoyproxy.envoy.config.endpoint.v3.ClusterLoadAssignment;
 

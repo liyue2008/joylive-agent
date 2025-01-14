@@ -1,11 +1,13 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
-import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
+import com.jd.live.agent.xds.config.IstioConfig;
 
 import io.envoyproxy.envoy.config.route.v3.RouteConfiguration;
 
@@ -37,6 +39,16 @@ public class RDSService extends XDSService<RouteConfiguration> {
     @Override
     protected Class<RouteConfiguration> getResourceClass() {
         return RouteConfiguration.class;
+    }
+
+    public static List<String> getEdsNames(List<RouteConfiguration> routes) {
+        return routes.stream()
+            .map(route -> route.getVirtualHostsList())
+            .flatMap(List::stream)
+            .map(XDSConvert::getClusterNamesFromVirtualHost)
+            .flatMap(List::stream)
+            .distinct()
+            .collect(Collectors.toList());
     }
 
 }

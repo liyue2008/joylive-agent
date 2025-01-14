@@ -64,6 +64,23 @@ spring:
                   - POST
                 exceptions:
                   - java.io.IOException
+        - id: provider-istio
+          uri: lb://joylive-demo-kubernetes-provider.envoy-managed
+          predicates:
+            - Path=/service-provider-istio/**
+            - Method=GET
+          filters:
+            - StripPrefix=1
+            - name: Retry
+              args:
+                retries: 2
+                series:
+                  - SERVER_ERROR
+                methods:
+                  - GET
+                  - POST
+                exceptions:
+                  - java.io.IOException
         - id: http
           uri: http://demo.live.local:11374/
           predicates:

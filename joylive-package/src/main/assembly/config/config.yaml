@@ -48,6 +48,7 @@ agent:
       - opengauss
       - postgresql
       - redis
+      - istio
     disables: null
     dynamics: null
     profiles:
@@ -122,6 +123,16 @@ agent:
         namespace: ${CONFIG_NACOS_NAMESPACE:public}
         serviceGroup: ${CONFIG_NACOS_GROUP_SERVICE:DEFAULT_GROUP}
         serviceKeyTemplate: ${CONFIG_NACOS_KEY_SERVICE_TEMPLATE:govern-service-${name}}
+      # for istio
+      istio:
+        istioAddress: ${CONFIG_ISTIO_ADDRESS:istio-ingressgateway.istio-system.svc.cluster.local\:15012}
+        sslEnabled: ${CONFIG_ISTIO_SSL_ENABLED:false}
+        sslCertPath: ${CONFIG_ISTIO_SSL_CERT_PATH:/etc/istio/certs/cert-chain.pem}
+        clusterName: ${CONFIG_ISTIO_CLUSTER_NAME:joy-live}
+        namespace: ${CONFIG_ISTIO_NAMESPACE:default}
+        istioVersion: ${CONFIG_ISTIO_VERSION:1.21.0}
+
+
   watchdog:
     enabled: true
     delay: 5000

@@ -1,4 +1,4 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -8,9 +8,8 @@ import javax.net.ssl.SSLException;
 
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
-import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
+import com.jd.live.agent.xds.config.IstioConfig;
 
-import io.envoyproxy.envoy.config.core.v3.Node;
 import io.envoyproxy.envoy.service.discovery.v3.DiscoveryRequest;
 import io.envoyproxy.envoy.service.discovery.v3.DiscoveryResponse;
 import io.grpc.stub.StreamObserver;
@@ -18,32 +17,31 @@ import lombok.Setter;
 
 
 
-public abstract class XDSService<T extends com.google.protobuf.Message>{
+public abstract class XDSService<T extends com.google.protobuf.Message> {
 
     private static final Logger logger = LoggerFactory.getLogger(XDSService.class);
 
     protected final IstioConfig config;
     protected final GrpcChannelManager channelManager;
-    protected final Node node;
+
     protected StreamObserver<DiscoveryRequest> requestObserver = null;
 
     private final Object lock = new Object();
 
-    private final ResonseObserver<T> responseObserver;
-    
+    private final ResponseObserver<T> responseObserver;
+
 
     public XDSService(IstioConfig config, GrpcChannelManager channelManager) {
         this.config = config;
         this.channelManager = channelManager;
-        this.node = XDSSupoort.buildNode(config);
-        this.responseObserver = new ResonseObserver<>(channelManager, getResourceClass());
+        this.responseObserver = new ResponseObserver<>(channelManager, getResourceClass());
     }
 
     public Future<List<T>> subscribeResources(List<String> resourceNames) {
-        
-        DiscoveryRequest request = XDSSupoort.buildDiscoveryRequest(resourceNames, node, getResourceTypeUrl());
+
+        DiscoveryRequest request = XDSSupport.buildDiscoveryRequest(resourceNames, XDSSupport.buildNode(config), getResourceTypeUrl());
         ResponseStreamObserverFuture<T> responseStreamObserverFuture = new ResponseStreamObserverFuture<>(getResourceClass(), channelManager);
-        StreamObserver<DiscoveryRequest> requestObserver = XDSSupoort.createADSStub(channelManager.getChannel())
+        StreamObserver<DiscoveryRequest> requestObserver = XDSSupport.createADSStub(channelManager.getChannel())
             .streamAggregatedResources(responseStreamObserverFuture);
         requestObserver.onNext(request);
         requestObserver.onCompleted();
@@ -51,7 +49,7 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
     }
 
     public void subscribeResourcesAsync(List<String> resourceNames) {
-        DiscoveryRequest request = XDSSupoort.buildDiscoveryRequest(resourceNames, node, getResourceTypeUrl());
+        DiscoveryRequest request = XDSSupport.buildDiscoveryRequest(resourceNames, XDSSupport.buildNode(config), getResourceTypeUrl());
         maybeCreateRequestObserverSafely();
         responseObserver.setLastRequest(request);
         requestObserver.onNext(request);
@@ -60,8 +58,8 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
     private void maybeCreateRequestObserverSafely() {
         if (requestObserver == null) {
             synchronized (lock) {
-                if (requestObserver == null) {  
-                    requestObserver = XDSSupoort.createADSStub(channelManager.getChannel())
+                if (requestObserver == null) {
+                    requestObserver = XDSSupport.createADSStub(channelManager.getChannel())
                         .streamAggregatedResources(this.responseObserver);
                     responseObserver.setRequestObserver(requestObserver);
                 }
@@ -79,13 +77,13 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
 
     public void addOnCompleteCallback(Runnable callback) {
         responseObserver.addOnCompleteCallback(callback);
-    } 
+    }
 
     public void addOnErrorCallback(Consumer<Throwable> callback) {
         responseObserver.addOnErrorCallback(callback);
     }
 
-    private static class ResonseObserver<T extends com.google.protobuf.Message> implements StreamObserver<DiscoveryResponse> {
+    private static class ResponseObserver<T extends com.google.protobuf.Message> implements StreamObserver<DiscoveryResponse> {
 
         private final List<Consumer<List<T>>> resourceConsumers = new CopyOnWriteArrayList<>();
         private final GrpcChannelManager channelManager;
@@ -97,7 +95,7 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
         @Setter
         private StreamObserver<DiscoveryRequest> requestObserver;
 
-        public ResonseObserver(GrpcChannelManager channelManager, Class<T> resourceClass) {
+        ResponseObserver(GrpcChannelManager channelManager, Class<T> resourceClass) {
 
             this.channelManager = channelManager;
             this.resourceClass = resourceClass;
@@ -105,11 +103,11 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
         @Override
         public void onNext(DiscoveryResponse response) {
             logger.info("{} updated, count: {}", resourceClass.getSimpleName(), response.getResourcesCount());
-            List<T> resources = XDSSupoort.extractResources(response, resourceClass);
+            List<T> resources = XDSSupport.extractResources(response, resourceClass);
             resourceConsumers.forEach(consumer -> consumer.accept(resources));
-            
+
             // ack
-            DiscoveryRequest ackRequest = XDSSupoort.buildAckDiscoveryRequest(lastRequest, response);
+            DiscoveryRequest ackRequest = XDSSupport.buildAckDiscoveryRequest(lastRequest, response);
             requestObserver.onNext(ackRequest);
         }
         @Override
@@ -135,12 +133,11 @@ public abstract class XDSService<T extends com.google.protobuf.Message>{
 
         public void addOnCompleteCallback(Runnable callback) {
             onCompleteCallbacks.add(callback);
-        } 
+        }
 
         public void addOnErrorCallback(Consumer<Throwable> callback) {
             onErrorCallbacks.add(callback);
         }
     }
-    
 }
 

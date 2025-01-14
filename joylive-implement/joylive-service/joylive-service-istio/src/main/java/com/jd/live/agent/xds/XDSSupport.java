@@ -1,4 +1,4 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
-import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
+import com.jd.live.agent.xds.config.IstioConfig;
 
 import io.envoyproxy.envoy.config.core.v3.Node;
 import io.envoyproxy.envoy.service.discovery.v3.AggregatedDiscoveryServiceGrpc;
@@ -22,9 +22,9 @@ import io.grpc.stub.StreamObserver;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-public class XDSSupoort {
+public class XDSSupport {
 
-    private static final Logger logger = LoggerFactory.getLogger(XDSSupoort.class);
+    private static final Logger logger = LoggerFactory.getLogger(XDSSupport.class);
 
 
     public static Node buildNode(IstioConfig config) {

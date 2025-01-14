@@ -1,4 +1,4 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -15,7 +15,6 @@ import com.jd.live.agent.bootstrap.logger.LoggerFactory;
 import io.envoyproxy.envoy.service.discovery.v3.DiscoveryResponse;
 import io.grpc.stub.StreamObserver;
 
-// TODO： 支持ACK和增量更新
 public class ResponseStreamObserverFuture<T extends com.google.protobuf.Message> implements StreamObserver<DiscoveryResponse>, Future<List<T>> {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseStreamObserverFuture.class);
@@ -41,8 +40,8 @@ public class ResponseStreamObserverFuture<T extends com.google.protobuf.Message>
 
     @Override
     public void onNext(DiscoveryResponse response) {
-        
-        this.resources = XDSSupoort.extractResources(response, resourceClass);
+
+        this.resources = XDSSupport.extractResources(response, resourceClass);
         onComplete();
     }
 

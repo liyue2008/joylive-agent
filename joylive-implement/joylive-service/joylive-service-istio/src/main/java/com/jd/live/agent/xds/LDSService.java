@@ -1,4 +1,4 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
-import com.jd.live.agent.implement.service.policy.istio.config.IstioConfig;
+import com.jd.live.agent.xds.config.IstioConfig;
 
 import io.envoyproxy.envoy.config.listener.v3.Listener;
 import io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager;
@@ -30,7 +30,7 @@ public class LDSService extends XDSService<Listener> {
             return listenerFutures.get(15, TimeUnit.SECONDS);
         } catch (Exception e) {
             logger.error("Error subscribing listeners", e);
-            return null;    
+            return null;
         }
     }
 
@@ -38,7 +38,7 @@ public class LDSService extends XDSService<Listener> {
         List<String> rdsNames = new ArrayList<>();
 
         for (Listener listener : listeners) {
-            if(listener.getAddress().getSocketAddress().getPortValue() == 80) {
+            if (listener.getAddress().getSocketAddress().getPortValue() == 80) {
                 // 处理过滤器链
                 listener.getFilterChainsList().forEach(filterChain -> {
                     filterChain.getFiltersList().forEach(filter -> {

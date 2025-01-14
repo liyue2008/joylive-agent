@@ -1,8 +1,13 @@
-package com.jd.live.agent.implement.service.policy.istio.xds;
+package com.jd.live.agent.xds;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.client.ServiceInstance;
 
 import com.jd.live.agent.bootstrap.logger.Logger;
 import com.jd.live.agent.bootstrap.logger.LoggerFactory;
@@ -16,7 +21,9 @@ import com.jd.live.agent.governance.rule.tag.TagCondition;
 import com.jd.live.agent.governance.rule.tag.TagDestination;
 import com.jd.live.agent.governance.rule.tag.TagRule;
 
+import io.envoyproxy.envoy.config.endpoint.v3.LocalityLbEndpoints;
 import io.envoyproxy.envoy.config.route.v3.Route;
+import io.envoyproxy.envoy.config.route.v3.RouteAction;
 import io.envoyproxy.envoy.config.route.v3.RouteMatch;
 import io.envoyproxy.envoy.config.route.v3.VirtualHost;
 import io.envoyproxy.envoy.type.matcher.v3.StringMatcher;
@@ -24,7 +31,15 @@ import io.envoyproxy.envoy.type.matcher.v3.StringMatcher;
 public class XDSConvert {
 
     private static final Logger logger = LoggerFactory.getLogger(XDSConvert.class);
-    
+
+
+    public static List<String> getClusterNamesFromVirtualHost(VirtualHost virtualHost) {
+        return virtualHost.getRoutesList().stream()
+            .map(Route::getRoute).filter(Objects::nonNull)
+            .map(RouteAction::getCluster).filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
     public static List<Service> virtualHostToServices(VirtualHost virtualHost) {
         List<Service> services = new ArrayList<>();
         virtualHost.getDomainsList().forEach(domain -> {
@@ -34,14 +49,17 @@ public class XDSConvert {
             }
             Service service = new Service(domain, ServiceType.HTTP);
 
-            ServicePolicy servicePolicy = new ServicePolicy();
-            servicePolicy.setRoutePolicies(routesToRoutePolicies(virtualHost.getRoutesList()));
-            
-            ServiceGroup serviceGroup = new ServiceGroup("default", true, servicePolicy);
+            ServiceGroup serviceGroup = virtualHostToServiceGroup(virtualHost);
             service.setGroups(Collections.singletonList(serviceGroup));
             services.add(service);
         });
         return services;
+    }
+
+    public static ServiceGroup virtualHostToServiceGroup(VirtualHost virtualHost) {
+        ServicePolicy servicePolicy = new ServicePolicy();
+        servicePolicy.setRoutePolicies(routesToRoutePolicies(virtualHost.getRoutesList()));
+        return new ServiceGroup("default", true, servicePolicy);
     }
 
     private static List<RoutePolicy> routesToRoutePolicies(List<Route> routes) {
@@ -56,10 +74,10 @@ public class XDSConvert {
                 routePolicy.setOrder(routes.indexOf(route));
                 TagRule tagRule = new TagRule(tagConditions, Collections.singletonList(tagDestination));
                 routePolicy.setTagRules(Collections.singletonList(tagRule));
-
+                routePolicies.add(routePolicy);
             } else {
                 logger.warn("Ignore unsupported route: {}", route);
-            }        
+            }
         }
         return routePolicies;
     }
@@ -104,7 +122,6 @@ public class XDSConvert {
             } else {
                 logger.warn("Ignore unsupported query parameter: {}", queryParameter);
             }
-            
         });
         return tagConditions;
 
@@ -118,8 +135,32 @@ public class XDSConvert {
                 return new TagCondition(key, Collections.singletonList(stringMatcher.getPrefix()), OpType.PREFIX, type);
             } else if (null != stringMatcher.getSafeRegex()) {
                 return new TagCondition(key, Collections.singletonList(stringMatcher.getSafeRegex().getRegex()), OpType.REGULAR, type);
-            } 
+            }
         }
         return null;
     }
+
+    public static List<ServiceInstance> endpointsToServiceInstances(List<LocalityLbEndpoints> endpoints,
+            String clusterName, String serviceName) {
+        List<ServiceInstance> serviceInstances = new ArrayList<>();
+        for (LocalityLbEndpoints localityLbEndpoints : endpoints) {
+            serviceInstances.addAll(endpointToServiceInstances(localityLbEndpoints, clusterName, serviceName));
+        }
+        return serviceInstances;
+
+    }
+
+    public static List<ServiceInstance> endpointToServiceInstances(LocalityLbEndpoints localityLbEndpoints,
+        String clusterName, String serviceName) {
+        List<ServiceInstance> serviceInstances = new ArrayList<>();
+
+        localityLbEndpoints.getLbEndpointsList().forEach(lbEndpoint -> {
+            String address = lbEndpoint.getEndpoint().getAddress().getSocketAddress().getAddress();
+            int port = lbEndpoint.getEndpoint().getAddress().getSocketAddress().getPortValue();
+            serviceInstances.add(new DefaultServiceInstance(serviceName + "/" + address + ":" + port, serviceName, address, port, false,
+                    Collections.singletonMap("subset", clusterName)));
+        });
+        return serviceInstances;
+    }
+
 }

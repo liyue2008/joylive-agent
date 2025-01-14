@@ -93,6 +93,7 @@ public class GovernanceConfig {
     public static final String CONFIG_ROUTER = CONFIG_AGENT_GOVERNANCE + ".router";
     public static final String CONFIG_ROUTER_SPRING = CONFIG_ROUTER + ".spring";
     public static final String CONFIG_ROUTER_SPRING_DISCOVERY_DISABLES = CONFIG_ROUTER_SPRING + ".discovery.disables";
+    public static final String CONFIG_ROUTER_SPRING_ISTIO = CONFIG_ROUTER_SPRING + ".istio";
 
     @Config("live")
     private LiveConfig liveConfig = new LiveConfig();

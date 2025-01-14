@@ -63,6 +63,7 @@
                 <include>com.jd.live:joylive-parser-fastjson2</include>
                 <include>com.jd.live:joylive-parser-properties</include>
                 <include>com.jd.live:joylive-service-file</include>
+                <include>com.jd.live:joylive-service-istio</include>
                 <include>com.jd.live:joylive-service-multilive</include>
                 <include>com.jd.live:joylive-service-microservice</include>
                 <include>com.jd.live:joylive-service-nacos</include>
@@ -286,6 +287,15 @@
             <unpack>false</unpack>
             <includes>
                 <include>com.jd.live:joylive-protection-redis</include>
+            </includes>
+        </dependencySet>
+        <!-- plugin/istio -->
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>plugin/istio</outputDirectory>
+            <unpack>false</unpack>
+            <includes>
+                <include>com.jd.live:joylive-service-istio</include>
             </includes>
         </dependencySet>
     </dependencySets>
