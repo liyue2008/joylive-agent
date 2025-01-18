@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class IstioConfig {
 
-    private String istioAddress = "istio-ingressgateway.istio-system.svc.cluster.local:15012";
+    private String istioAddress = "istiod.istio-system.svc.cluster.local:15010";
     private boolean sslEnabled = false;
     private String sslCertPath = "/etc/istio/certs/cert-chain.pem";
     private String clusterName = "joy-live";

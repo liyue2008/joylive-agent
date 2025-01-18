@@ -35,38 +35,23 @@ spec:
         - env:
             - name: SERVER_PORT
               value: "80"
-            - name: CONFIG_LIVE_SPACE_API_TYPE
-              value: multilive
-            - name: CONFIG_LIVE_SPACE_API_URL
-              value: http://api.live.local/v1
-            - name: CONFIG_LIVE_SPACE_API_HEADERS
-              value: pin=demo
             - name: CONFIG_SERVICE_API_TYPE
-              value: jmsf
-            - name: CONFIG_SERVICE_API_URL
-              value: http://api.jmsf.local/v1
+              value: istio
+            - name: CONFIG_ISTIO_ADDRESS
+              value: istiod.istio-system.svc.cluster.local:15010
             - name: LIVE_LOG_LEVEL
-              value: info
-            - name: CONFIG_LANE_ENABLED
-              value: "false"
+              value: INFO
             - name: APPLICATION_NAME
               value: kubernetes-gateway
-            - name: APPLICATION_SERVICE_NAMESPACE
-              value: default
-            - name: APPLICATION_LOCATION_REGION
-              value: region1
-            - name: APPLICATION_LOCATION_ZONE
-              value: zone1
             - name: APPLICATION_LOCATION_LIVESPACE_ID
               value: v4bEh4kd6Jvu5QBX09qYq-qlbcs
             - name: APPLICATION_LOCATION_UNIT
               value: unit1
             - name: APPLICATION_LOCATION_CELL
               value: cell1
-            - name: APPLICATION_SERVICE_GATEWAY
-              value: FRONTEND
-          image: joylive-demo-kubernetes-gateway:1.5.0
+          image: joylive-demo-kubernetes-gateway:1.6.4
           name: joylive-demo-kubernetes-gateway
+          command: ["sleep", "infinity"]
           ports:
             - containerPort: 80
               name: http

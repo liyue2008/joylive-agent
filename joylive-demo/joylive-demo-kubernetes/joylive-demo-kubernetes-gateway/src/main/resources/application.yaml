@@ -17,10 +17,13 @@ spring:
     serialization:
       indent_output: true
   cloud:
+    kubernetes:
+      discovery:
+        server-url: ${KUBERNETES_DISCOVERY_SERVER_URL:https://kubernetes.default.svc}
     gateway:
       routes:
         - id: provider
-          uri: http://joylive-demo-kubernetes-provider.envoy-managed.svc.cluster.local:80
+          uri: lb://joylive-demo-kubernetes-provider.envoy-managed
           predicates:
             - Path=/service-provider/**
             - Method=GET
