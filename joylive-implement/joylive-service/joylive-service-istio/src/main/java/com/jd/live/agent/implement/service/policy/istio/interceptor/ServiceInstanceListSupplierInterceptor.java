@@ -38,7 +38,7 @@ public class ServiceInstanceListSupplierInterceptor extends InterceptorAdaptor {
             List<ServiceInstance> instances = getInstances(targetServiceName);
             logger.info("{} instances from cache: {}.", targetServiceName,
                 instances.stream().map(instance -> instance.getHost() + ":" + instance.getPort() + "/" + instance.getMetadata().get("subset")).collect(Collectors.toList()));
-            mc.skipWithResult(Flux.just());
+            mc.skipWithResult(Flux.just(instances));
         }
     }
 
